@@ -1,4 +1,4 @@
-# GoldHEN Plugin SDK - a PRX hook/patch SDK for Orbis OS
+# GoldHEN Plugin SDK - a PRX hook/patch SDK for the OOSDK
 
 [![Build library check](https://github.com/GoldHEN/GoldHEN_Plugins_SDK/actions/workflows/build_lib.yml/badge.svg)](https://github.com/GoldHEN/GoldHEN_Plugins_SDK/actions/workflows/build_lib.yml)
 [![MIT Licensed](https://img.shields.io/github/license/GoldHEN/GoldHEN_Plugins_SDK.svg?maxAge=2592000)](https://github.com/GoldHEN/GoldHEN_Plugins_SDK/blob/main/LICENSE)
@@ -17,7 +17,8 @@ Just build all files from `source/` as C source code, and include stuff from `in
 ## Including the SDK as a static library
 
 If you are sure you won't be rebuilding the GoldHEN SDK, then you can include stuff from `include/`,
-run `make` for Linux or `build_static.bat` for Windows to build a static library `libGoldHEN_Hook.a` and then use it in your project for the implementation of the headers.
+run `make` for Linux or `build_static.bat` for Windows, if you wish to to build a static library
+and then use it in your project for the implementation of the headers, run `make install`.
 
 # Troubleshooting log crashes
 
