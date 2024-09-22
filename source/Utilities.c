@@ -9,7 +9,7 @@
  * - SiSTRo <https://github.com/SiSTR0>
  */
 
-#include "Common.h"
+#include "GoldHEN/Common.h"
 
 void hex_dump(void *data, size_t size) {
     unsigned char *p = (unsigned char *)data;

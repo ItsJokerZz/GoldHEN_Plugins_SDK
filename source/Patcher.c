@@ -9,8 +9,8 @@
  * - SiSTRo <https://github.com/SiSTR0>
  */
 
-#include "Common.h"
-#include "Patcher.h"
+#include "GoldHEN/Common.h"
+#include "GoldHEN/Patcher.h"
 
 void Patcher_Construct(Patcher *This)
 {

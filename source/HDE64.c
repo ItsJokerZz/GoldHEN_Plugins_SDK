@@ -7,8 +7,8 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "HDE64.h"
-#include "Table64.h"
+#include "GoldHEN/HDE64.h"
+#include "GoldHEN/Table64.h"
 
 unsigned int hde64_disasm(const void *code, hde64s *hs) {
     uint8_t x, c, *p = (uint8_t *)code, cflags, opcode, pref = 0;

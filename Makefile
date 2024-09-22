@@ -97,7 +97,6 @@ crt:
 
 install: all
 	@echo Copying...
-	@mkdir -p $(OO_PS4_TOOLCHAIN)/include/GoldHEN
 	@cp -frv include/* $(OO_PS4_TOOLCHAIN)/include/GoldHEN
 	@cp -frv $(TARGETSTATIC) $(OO_PS4_TOOLCHAIN)/lib
 	@echo Done!

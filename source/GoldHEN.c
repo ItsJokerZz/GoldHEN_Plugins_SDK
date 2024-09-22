@@ -9,7 +9,7 @@
  * - SiSTRo <https://github.com/SiSTR0>
  */
 
-#include "Common.h"
+#include "GoldHEN/Common.h"
 
 /** GoldHEN **/
 uint32_t sys_sdk_version() {

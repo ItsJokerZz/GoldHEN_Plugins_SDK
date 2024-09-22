@@ -9,8 +9,8 @@
  * - SiSTRo <https://github.com/SiSTR0>
  */
 
-#include "Common.h"
-#include "HDE64.h"
+#include "GoldHEN/Common.h"
+#include "GoldHEN/HDE64.h"
 
 size_t Detour_GetInstructionSize(Detour *This, uint64_t Address, size_t MinSize);
 void Detour_WriteJump64(Detour *This, void *Address, uint64_t Destination);

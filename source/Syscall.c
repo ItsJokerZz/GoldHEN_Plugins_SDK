@@ -9,7 +9,7 @@
  * - SiSTRo <https://github.com/SiSTR0>
  */
 
-#include "Common.h"
+#include "GoldHEN/Common.h"
 
 __asm__(
     ".att_syntax prefix\n"
