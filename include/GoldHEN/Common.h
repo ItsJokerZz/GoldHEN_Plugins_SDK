@@ -12,7 +12,8 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 #include <errno.h>
@@ -30,25 +31,60 @@ extern "C" {
 #include "Utilities.h"
 #include "Syscall.h"
 
+#define u8 uint8_t
+#define u16 uint16_t
+#define u32 uint32_t
+#define u64 uint64_t
+#define s8 int8_t
+#define s16 int16_t
+#define s32 int32_t
+#define s64 int64_t
+#define f32 float
+#define f64 double
+
+#define GOLDHEN_PATH "/data/GoldHEN"
+#define MAX_PATH_ 260
+#define TEX_ICON_SYSTEM "cxml://psnotification/tex_icon_system"
+
+#define attr_module_hidden __attribute__((weak)) __attribute__((visibility("hidden")))
+#define attr_public __attribute__((visibility("default")))
+
+#if (__FINAL__) == 1
+#define BUILD_TYPE "(Release)"
+#define debug_printf(a, args...)
+#else
+#define BUILD_TYPE "(Debug)"
+#define debug_printf(a, args...) klog("[%s] (%s:%d) " a, __func__, __FILE__, __LINE__, ##args)
+#endif
+
+#define final_printf(a, args...) klog("(%s:%d) " a, __FILE__, __LINE__, ##args)
+#define boot_ver() \
+    { \
+        final_printf("Commit: %s Branch: %s Build: %i %s\n", GIT_COMMIT, GIT_VER, GIT_NUM, BUILD_TYPE); \
+        final_printf("Built: %s\n", BUILD_DATE); \
+        final_printf("GoldHEN SDK Ver: 0x%08x\n", GOLDHEN_SDK_VERSION); \
+        final_printf("GoldHEN System SDK Ver: 0x%08x\n", sys_sdk_version()); \
+    }
+
+#define print_proc_info() \
+    { \
+        final_printf("process info\n"); \
+        final_printf("pid: %d\n", procInfo.pid); \
+        final_printf("name: %s\n", procInfo.name); \
+        final_printf("path: %s\n", procInfo.path); \
+        final_printf("titleid: %s\n", procInfo.titleid); \
+        final_printf("contentid: %s\n", procInfo.contentid); \
+        final_printf("version: %s\n", procInfo.version); \
+        final_printf("base_address: 0x%lx\n", procInfo.base_address); \
+    }
+
 #define STRINGIFY(x) #x
 #define STRINGIFY_DEEP(x) STRINGIFY(x)
 
-// these are defined as enums in newest oosdk
-/*
-#define ORBIS_SYSMODULE_INTERNAL_SYS_CORE            0x80000004
-#define ORBIS_SYSMODULE_INTERNAL_NETCTL              0x80000009
-#define ORBIS_SYSMODULE_INTERNAL_HTTP                0x8000000A
-#define ORBIS_SYSMODULE_INTERNAL_SSL                 0x8000000B
-#define ORBIS_SYSMODULE_INTERNAL_NP_COMMON           0x8000000C
-#define ORBIS_SYSMODULE_INTERNAL_SYSTEM_SERVICE      0x80000010
-#define ORBIS_SYSMODULE_INTERNAL_USER_SERVICE        0x80000011
-#define ORBIS_SYSMODULE_INTERNAL_APPINSTUTIL         0x80000014
-#define ORBIS_SYSMODULE_INTERNAL_NET                 0x8000001C
-#define ORBIS_SYSMODULE_INTERNAL_IPMI                0x8000001D
-#define ORBIS_SYSMODULE_INTERNAL_VIDEO_OUT           0x80000022
-#define ORBIS_SYSMODULE_INTERNAL_BGFT                0x8000002A
-#define ORBIS_SYSMODULE_INTERNAL_PRECOMPILED_SHADERS 0x80000064
-*/
+void NotifyStatic(const char *IconUri, const char *text);
+void Notify(const char *IconUri, const char *FMT, ...);
+
+#define startsWith(str1, str2) (strncmp(str1, str2, __builtin_strlen(str2)) == 0)
 
 #ifdef __cplusplus
 }
