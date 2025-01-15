@@ -11,7 +11,10 @@
  * - nik <https://github.com/nkrapivin>
  */
 
+
 #pragma once
+
+#include "GoldHEN/Common.h"
 
 #ifdef __cplusplus
 extern "C" {
