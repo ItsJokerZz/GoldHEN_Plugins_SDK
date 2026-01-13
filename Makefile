@@ -99,4 +99,6 @@ install: all
 	@echo Copying...
 	@cp -frv include/* $(OO_PS4_TOOLCHAIN)/include/
 	@cp -frv $(TARGETSTATIC) $(OO_PS4_TOOLCHAIN)/lib
+	@cp -frv $(TARGETCRT) $(OO_PS4_TOOLCHAIN)/lib
+	
 	@echo Done!
