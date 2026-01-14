@@ -7,6 +7,7 @@
  * - bucanero <https://github.com/bucanero>
  * - OpenOrbis Team <https://github.com/OpenOrbis>
  * - SiSTRo <https://github.com/SiSTR0>
+ * - ItsJokerZz <https://github.com/ItsJokerZz>
  */
 
 #pragma once
@@ -15,30 +16,25 @@
 extern "C" {
 #endif
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-typedef enum _GHSDK_DetourMode {
-    DetourMode_x64,
-    DetourMode_x32
-} DetourMode;
+typedef enum _GHSDK_DetourMode { DetourMode_x64, DetourMode_x32 } DetourMode;
 
 typedef struct _GHSDK_Detour {
-    DetourMode Mode;
-    void *StubPtr;
-    size_t StubSize;
-    void *FunctionPtr;
-    void *TrampolinePtr;
-    void *HookPtr;
-    uint8_t JumpInstructions64[14];  // jmp QWORD PTR[Address]
-    uint8_t JumpInstructions32[05];  // jmp 32
+  DetourMode Mode;
+  void *StubPtr;
+  size_t StubSize;
+  void *FunctionPtr;
+  void *TrampolinePtr;
+  void *HookPtr;
+  uint8_t JumpInstructions64[14]; // jmp QWORD PTR[Address]
+  uint8_t JumpInstructions32[05]; // jmp 32
 } Detour;
 
 // usage:
 // typedef int(*somefunc_t)(int, void *, const char *);
-// int result = Detour_Stub(&SomeHook, somefunc_t, /* arguments begin */ 1, NULL, "hi");
-#define Detour_Stub(This, FunctionPointerType, ...) (((FunctionPointerType)((This)->StubPtr))(/* Arguments */__VA_ARGS__))
+// int result = Detour_Stub(&SomeHook, somefunc_t, /* arguments begin */ 1,
+// NULL, "hi");
+#define Detour_Stub(This, FunctionPointerType, ...)                            \
+  (((FunctionPointerType)((This)->StubPtr))(/* Arguments */ __VA_ARGS__))
 
 void *Detour_DetourFunction(Detour *This, uint64_t FunctionPtr, void *HookPtr);
 

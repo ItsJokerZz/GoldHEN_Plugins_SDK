@@ -1,14 +1,23 @@
-# Library metadata.
-TARGET       := libGoldHEN_Hook.prx
-TARGETSTUB   := libGoldHEN_Hook_Stub.so
-TARGETSTATIC := libGoldHEN_Hook.a
-TARGETCRT    := build/crtprx.o
+TOOLCHAIN    := $(OO_PS4_TOOLCHAIN)
+PROJDIR      := source
+INTDIR       := build
+STUBDIR      := $(INTDIR)/stubs
+LIBDIR       := $(INTDIR)/libs
+INCLUDEDIR   := include
+COMMONDIR    := common
+DEBUGFLAGS   := 0
 
-# Libraries linked into the ELF.
+TARGETSTUB   := $(STUBDIR)/libGoldHEN_Hook.so
+TARGET       := $(LIBDIR)/libGoldHEN_Hook.prx
+TARGETSTATIC := $(LIBDIR)/libGoldHEN_Hook.a
+
+TARGETCRT    := $(INTDIR)/crtprx.o
+CRTSTUB      := $(STUBDIR)/crtprx.o.stub
+
 LIBS         := -lSceLibcInternal -lkernel -lSceSysmodule
 
-LOG_TYPE = -D__USE_KLOG__
-DEBUG_FLAGS = -DDEBUG=0
+LOG_TYPE     = -D__USE_KLOG__
+DEBUG_FLAGS  = -DDEBUG=0
 
 ifeq ($(PRINTF),1)
     LOG_TYPE = -D__USE_PRINTF__
@@ -18,87 +27,103 @@ ifeq ($(DEBUGFLAGS),1)
     DEBUG_FLAGS = -DDEBUG=1
 endif
 
-# Additional compile flags.
-EXTRAFLAGS  := $(DEBUG_FLAGS) $(LOG_TYPE)
+EXTRAFLAGS   := $(DEBUG_FLAGS) $(LOG_TYPE)
 
-# Root vars
-TOOLCHAIN   := $(OO_PS4_TOOLCHAIN)
-PROJDIR     := source
-INTDIR      := build
-INCLUDEDIR  := include
-DEBUGFLAGS  := 0
+CFILES       := $(wildcard $(PROJDIR)/*.c)
+CPPFILES     := $(wildcard $(PROJDIR)/*.cpp)
+COMMONFILES  := $(wildcard $(COMMONDIR)/*.cpp)
 
-# Define objects to build
-CFILES      := $(wildcard $(PROJDIR)/*.c)
-CPPFILES    := $(wildcard $(PROJDIR)/*.cpp)
-COMMONFILES := $(wildcard $(COMMONDIR)/*.cpp)
-OBJS        := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $(PROJDIR)/%.cpp, $(INTDIR)/%.o, $(CPPFILES)) $(patsubst $(COMMONDIR)/%.cpp, $(INTDIR)/%.o, $(COMMONFILES))
-STUBOBJS    := $(patsubst $(PROJDIR)/%.c, $(INTDIR)/%.o, $(CFILES)) $(patsubst $(PROJDIR)/%.cpp, $(INTDIR)/%.o.stub, $(CPPFILES)) $(patsubst $(COMMONDIR)/%.cpp, $(INTDIR)/%.o.stub, $(COMMONFILES))
+OBJS         := $(patsubst $(PROJDIR)/%.c,$(INTDIR)/%.o,$(CFILES)) \
+                $(patsubst $(PROJDIR)/%.cpp,$(INTDIR)/%.o,$(CPPFILES)) \
+                $(patsubst $(COMMONDIR)/%.cpp,$(INTDIR)/%.o,$(COMMONFILES))
 
-# Define final C/C++ flags
-CFLAGS      := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -Iinclude
-CXXFLAGS    := $(CFLAGS) -isystem $(TOOLCHAIN)/$(INCLUDEDIR)/c++/v1
-LDFLAGS     := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib $(LIBS)
+STUBOBJS     := $(patsubst $(PROJDIR)/%.c,$(STUBDIR)/%.o.stub,$(CFILES)) \
+                $(patsubst $(PROJDIR)/%.cpp,$(STUBDIR)/%.o.stub,$(CPPFILES)) \
+                $(patsubst $(COMMONDIR)/%.cpp,$(STUBDIR)/%.o.stub,$(COMMONFILES))
 
-# Create the intermediate directory incase it doesn't already exist.
-_unused     := $(shell mkdir -p $(INTDIR))
+PRX_OBJS := $(patsubst $(PROJDIR)/%.c,$(INTDIR)/prx_%.o,$(filter-out $(PROJDIR)/crtprx.c,$(CFILES))) \
+            $(patsubst $(PROJDIR)/%.cpp,$(INTDIR)/prx_%.o,$(CPPFILES)) \
+            $(patsubst $(COMMONDIR)/%.cpp,$(INTDIR)/prx_%.o,$(COMMONFILES))
 
-# Check for linux vs macOS and account for clang/ld path
-UNAME_S     := $(shell uname -s)
+CFLAGS       := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) \
+                -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(INCLUDEDIR) -I$(COMMONDIR)
+CXXFLAGS     := $(CFLAGS) -isystem $(TOOLCHAIN)/$(INCLUDEDIR)/c++/v1
+LDFLAGS      := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib $(LIBS)
 
+UNAME_S      := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-		CC      := clang
-		CCX     := clang++
-		LD      := ld.lld
-		CDIR    := linux
-		AR      := llvm-ar
+	CC      := clang
+	CCX     := clang++
+	LD      := ld.lld
+	CDIR    := linux
+	AR      := llvm-ar
 endif
 ifeq ($(UNAME_S),Darwin)
-		CC      := /usr/local/opt/llvm/bin/clang
-		CCX     := /usr/local/opt/llvm/bin/clang++
-		LD      := /usr/local/opt/llvm/bin/ld.lld
-		AR      := /usr/local/opt/llvm/bin/llvm-ar
-		CDIR    := macos
+	CC      := /usr/local/opt/llvm/bin/clang
+	CCX     := /usr/local/opt/llvm/bin/clang++
+	LD      := /usr/local/opt/llvm/bin/ld.lld
+	CDIR    := macos
+	AR      := /usr/local/opt/llvm/bin/llvm-ar
 endif
 
-$(TARGET): $(INTDIR) $(OBJS)
-	$(LD) $(INTDIR)/*.o $(TARGETCRT) -o $(INTDIR)/$(PROJDIR).elf $(LDFLAGS)
-	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(INTDIR)/$(PROJDIR).elf -out=$(INTDIR)/$(PROJDIR).oelf --lib=$(TARGET) --paid 0x3800000000000011
+.PHONY: dirs
+dirs:
+	mkdir -p $(INTDIR) $(STUBDIR) $(LIBDIR)
 
-$(TARGETSTATIC): $(INTDIR) $(OBJS)
-	$(AR) --format=bsd rcs $(TARGETSTATIC) $(TARGETCRT) $(INTDIR)/*.o
+$(INTDIR)/prx_%.o: $(PROJDIR)/%.c | dirs
+	$(CC) $(CFLAGS) -DMAKE_STATIC=1 -o $@ $<
 
-$(TARGETSTUB): $(INTDIR) $(STUBOBJS)
-	$(CC) $(INTDIR)/*.o.stub -o $(TARGETSTUB) -target x86_64-pc-linux-gnu -shared -fuse-ld=lld -ffreestanding -nostdlib -fno-builtin -L$(TOOLCHAIN)/lib $(LIBS)
+$(INTDIR)/prx_%.o: $(PROJDIR)/%.cpp | dirs
+	$(CCX) $(CXXFLAGS) -DMAKE_STATIC=1 -o $@ $<
 
-$(INTDIR)/%.o: $(PROJDIR)/%.c
+$(TARGETCRT): $(PROJDIR)/crtprx.c | dirs
+	$(CC) $(CFLAGS) -DMAKE_STATIC=1 -o $@ $<
+
+$(TARGET): dirs $(PRX_OBJS) $(TARGETCRT)
+	$(LD) $(PRX_OBJS) $(TARGETCRT) -o $(INTDIR)/$(PROJDIR).elf $(LDFLAGS)
+	$(TOOLCHAIN)/bin/$(CDIR)/create-fself -in=$(INTDIR)/$(PROJDIR).elf \
+		-out=$@ --lib=$@ --paid 0x3800000000000011
+
+$(TARGETSTATIC): dirs $(OBJS) $(TARGETCRT)
+	$(AR) --format=bsd rcs $@ $(TARGETCRT) $(OBJS)
+
+$(TARGETSTUB): dirs $(STUBOBJS)
+	$(CC) $(STUBOBJS) -o $@ -target x86_64-pc-linux-gnu \
+	      -shared -fuse-ld=lld -ffreestanding -nostdlib -fno-builtin -L$(TOOLCHAIN)/lib $(LIBS)
+	strip $@
+
+$(STUBDIR)/crtprx.o.stub: $(PROJDIR)/crtprx.c | dirs
+	$(CC) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC \
+	      -D__STUB__ -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include \
+	      -c -o $@ $<
+
+$(INTDIR)/%.o: $(PROJDIR)/%.c | dirs
 	$(CC) $(CFLAGS) -o $@ $<
 
-$(INTDIR)/%.o: $(PROJDIR)/%.cpp
+$(INTDIR)/%.o: $(PROJDIR)/%.cpp | dirs
 	$(CCX) $(CXXFLAGS) -o $@ $<
 
-$(INTDIR)/%.o.stub: $(PROJDIR)/%.c
-	$(CC) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC -s -c -o $@ $<
+$(STUBDIR)/%.o.stub: $(PROJDIR)/%.c | dirs
+	$(CC) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC \
+	      -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(INCLUDEDIR) -I$(COMMONDIR) \
+	      -D__STUB__ -c -o $@ $<
 
-$(INTDIR)/%.o.stub: $(PROJDIR)/%.cpp
-	$(CCX) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC -s -c -o $@ $<
-
-.PHONY: clean crt
-.DEFAULT_GOAL := all
-
-all: clean crt $(TARGETSTATIC)
+$(STUBDIR)/%.o.stub: $(PROJDIR)/%.cpp | dirs
+	$(CCX) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC \
+	      -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(INCLUDEDIR) -I$(COMMONDIR) \
+	      -D__STUB__ -c -o $@ $<
 
 clean:
-	rm -rf $(TARGET) $(TARGETSTUB) $(INTDIR) $(OBJS) $(TARGETCRT) $(TARGETSTATIC)
+	rm -rf $(INTDIR)
 
-crt:
-	@mkdir build
-	$(CC) -target x86_64-pc-linux-gnu -ffreestanding -nostdlib -fno-builtin -fPIC -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -c crt/crtprx.c -o $(TARGETCRT)
+.PHONY: all clean dirs
+.DEFAULT_GOAL := all
 
-install: all
+all: dirs $(TARGETCRT) $(STUBOBJS) $(OBJS) $(TARGETSTATIC) $(TARGETSTUB) $(TARGET) 
+
+install: clean all
 	@echo Copying...
 	@cp -frv include/* $(OO_PS4_TOOLCHAIN)/include/
 	@cp -frv $(TARGETSTATIC) $(OO_PS4_TOOLCHAIN)/lib
 	@cp -frv $(TARGETCRT) $(OO_PS4_TOOLCHAIN)/lib
-	
 	@echo Done!

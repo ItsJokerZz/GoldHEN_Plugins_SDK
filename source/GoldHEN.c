@@ -7,57 +7,66 @@
  * - bucanero <https://github.com/bucanero>
  * - OpenOrbis Team <https://github.com/OpenOrbis>
  * - SiSTRo <https://github.com/SiSTR0>
+ * - ItsJokerZz <https://github.com/ItsJokerZz>
  */
 
 #include "GoldHEN/Common.h"
 
 /** GoldHEN **/
 uint32_t sys_sdk_version() {
-    return sys_sdk_cmd(GOLDHEN_SDK_CMD_VERSION, NULL);
+  return sys_sdk_cmd(GOLDHEN_SDK_CMD_VERSION, NULL);
 }
 
 int sys_sdk_cmd(uint64_t cmd, void *data) {
-    return orbis_syscall(500, cmd, data);
+  return orbis_syscall(500, cmd, data);
 }
 
-int sys_sdk_jailbreak(struct jailbreak_backup* jb) {
-    return sys_sdk_cmd(GOLDHEN_SDK_CMD_JAILBREAK, jb);
+int sys_sdk_jailbreak(struct jailbreak_backup *jb) {
+  return sys_sdk_cmd(GOLDHEN_SDK_CMD_JAILBREAK, jb);
 }
 
-int sys_sdk_unjailbreak(struct jailbreak_backup* jb) {
-    if (!jb) {
-        return -1;
-    }
+int sys_sdk_unjailbreak(struct jailbreak_backup *jb) {
+  if (!jb) {
+    return -1;
+  }
 
-    return sys_sdk_cmd(GOLDHEN_SDK_CMD_UNJAILBREAK, jb);
+  return sys_sdk_cmd(GOLDHEN_SDK_CMD_UNJAILBREAK, jb);
 }
 
-int sys_sdk_proc_info(struct proc_info* info) {
-    return sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_INFO, info);
+int sys_sdk_proc_info(struct proc_info *info) {
+  return sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_INFO, info);
 }
 
-int sys_sdk_proc_rw(struct proc_rw* data) {
-    return sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_RW, data);
+int sys_sdk_proc_rw(struct proc_rw *data) {
+  return sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_RW, data);
 }
 
-int sys_sdk_proc_prx_load(char* process_name, char* prx_path) {
-    struct proc_prx_load args;
-    memset(&args, 0, sizeof(struct proc_prx_load));
-    strncpy(args.process_name, process_name, sizeof(args.process_name));
-    strncpy(args.prx_path, prx_path, sizeof(args.prx_path));
+int sys_sdk_proc_prx_load(char *process_name, char *prx_path) {
+  struct proc_prx_load args;
+  memset(&args, 0, sizeof(struct proc_prx_load));
+  strncpy(args.process_name, process_name, sizeof(args.process_name));
+  strncpy(args.prx_path, prx_path, sizeof(args.prx_path));
 
-    sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_PRX_LOAD, &args);
+  sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_PRX_LOAD, &args);
 
-    return args.res;
+  return args.res;
 }
 
-int sys_sdk_proc_prx_unload(char* process_name, int prx_handle) {
-    struct proc_prx_unload args;
-    memset(&args, 0, sizeof(struct proc_prx_unload));
-    strncpy(args.process_name, process_name, sizeof(args.process_name));
-    args.prx_handle = prx_handle;
+int sys_sdk_proc_prx_unload(char *process_name, int prx_handle) {
+  struct proc_prx_unload args;
+  memset(&args, 0, sizeof(struct proc_prx_unload));
+  strncpy(args.process_name, process_name, sizeof(args.process_name));
+  args.prx_handle = prx_handle;
 
-    sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_PRX_UNLOAD, &args);
+  sys_sdk_cmd(GOLDHEN_SDK_CMD_PROCESS_PRX_UNLOAD, &args);
 
-    return args.res;
+  return args.res;
 }
+
+#ifdef MAKE_STATIC
+s32 module_start(s64 argc, const void *args) { return 0; }
+s32 module_stop(s64 argc, const void *args) { return 0; }
+
+s32 plugin_load(s32 argc, const char *argv[]) { return -1; }
+s32 plugin_unload(s32 argc, const char *argv[]) { return -1; }
+#endif

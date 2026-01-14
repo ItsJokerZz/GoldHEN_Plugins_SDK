@@ -7,6 +7,7 @@
  * - bucanero <https://github.com/bucanero>
  * - OpenOrbis Team <https://github.com/OpenOrbis>
  * - SiSTRo <https://github.com/SiSTR0>
+ * - ItsJokerZz <https://github.com/ItsJokerZz>
  */
 
 #pragma once
@@ -15,15 +16,15 @@
 extern "C" {
 #endif
 
-typedef struct _GHSDK_Patcher
-{
-    uint64_t Address;
-    void* OriginalData;
-    size_t Length;
+typedef struct _GHSDK_Patcher {
+  uint64_t Address;
+  void *OriginalData;
+  size_t Length;
 } Patcher;
 
 void Patcher_Construct(Patcher *This);
-void Patcher_Install_Patch(Patcher *This, uint64_t Address, const void* Data, size_t Length);
+void Patcher_Install_Patch(Patcher *This, uint64_t Address, const void *Data,
+                           size_t Length);
 void Patcher_Restore_Patch(Patcher *This);
 void Patcher_Destroy(Patcher *This);
 

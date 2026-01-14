@@ -7,6 +7,7 @@
  * - bucanero <https://github.com/bucanero>
  * - OpenOrbis Team <https://github.com/OpenOrbis>
  * - SiSTRo <https://github.com/SiSTR0>
+ * - ItsJokerZz <https://github.com/ItsJokerZz>
  */
 
 #pragma once
@@ -32,38 +33,44 @@ typedef unsigned char vm_prot_t; /* protection codes */
 #define MNT_UPDATE 0x0000000000010000ULL /* not real mount, just update */
 
 typedef unsigned long HA;
-#define HA_MANYARGS  HA arg1, HA arg2, HA arg3, HA arg4, HA arg5, HA arg6, HA arg7, HA arg8, HA arg9, HA arg10, HA arg11, HA arg12
-#define MANYARGS arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12
+#define HA_MANYARGS                                                            \
+  HA arg1, HA arg2, HA arg3, HA arg4, HA arg5, HA arg6, HA arg7, HA arg8,      \
+      HA arg9, HA arg10, HA arg11, HA arg12
+#define MANYARGS                                                               \
+  arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12
 
 #define klog printf
 
 // if you need to define the hook in some header file, this only externs it.
-#define HOOK_EXTERN(name) \
-        extern Detour Detour_##name
+#define HOOK_EXTERN(name) extern Detour Detour_##name
 
 // this defines the actual implementation
-#define HOOK_INIT(name)                                                        \
-        Detour Detour_##name = { DetourMode_x64 }
+#define HOOK_INIT(name) Detour Detour_##name = {DetourMode_x64}
 
 // this does a 64bit hook
-#define HOOK(name) do { \
-    klog("%s:%d HOOK64() Create " #name "\n", __FUNCTION__, __LINE__);  \
-    Detour_Construct( (&(Detour_##name)), DetourMode_x64);                                 \
-    Detour_DetourFunction( (&(Detour_##name)), (uint64_t)name, (void *)(&(name##_hook)) ); \
-} while (0)
+#define HOOK(name)                                                             \
+  do {                                                                         \
+    klog("%s:%d HOOK64() Create " #name "\n", __FUNCTION__, __LINE__);         \
+    Detour_Construct((&(Detour_##name)), DetourMode_x64);                      \
+    Detour_DetourFunction((&(Detour_##name)), (uint64_t)name,                  \
+                          (void *)(&(name##_hook)));                           \
+  } while (0)
 
 // 32bit...
-#define HOOK32(name) do { \
-    klog("%s:%d HOOK32() Create " #name "\n", __FUNCTION__, __LINE__);  \
-    Detour_Construct( (&(Detour_##name)), DetourMode_x32);                                 \
-    Detour_DetourFunction( (&(Detour_##name)), (uint64_t)name, (void *)(&(name##_hook)) ); \
-} while (0)
+#define HOOK32(name)                                                           \
+  do {                                                                         \
+    klog("%s:%d HOOK32() Create " #name "\n", __FUNCTION__, __LINE__);         \
+    Detour_Construct((&(Detour_##name)), DetourMode_x32);                      \
+    Detour_DetourFunction((&(Detour_##name)), (uint64_t)name,                  \
+                          (void *)(&(name##_hook)));                           \
+  } while (0)
 
 // tries to pass arguments
-#define HOOK_CONTINUE(name, type, ...) Detour_Stub( (&(Detour_##name)) , type , __VA_ARGS__ )
+#define HOOK_CONTINUE(name, type, ...)                                         \
+  Detour_Stub((&(Detour_##name)), type, __VA_ARGS__)
 
 // unhooks, killing the defined hook, CANNOT BE REUSED
-#define UNHOOK(name) Detour_Destroy( (&(Detour_##name)) )
+#define UNHOOK(name) Detour_Destroy((&(Detour_##name)))
 
 void hex_dump(void *data, size_t size);
 

@@ -7,9 +7,14 @@
  * - bucanero <https://github.com/bucanero>
  * - OpenOrbis Team <https://github.com/OpenOrbis>
  * - SiSTRo <https://github.com/SiSTR0>
+ * - ItsJokerZz <https://github.com/ItsJokerZz>
  */
 
 #pragma once
+
+#define SYS_dynlib_dlsym   591
+#define SYS_dynlib_load    594
+#define SYS_dynlib_unload  595
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +25,8 @@ int orbis_syscall(int num, ...);
 int sys_dynlib_dlsym(int loadedModuleID, const char *name, void *destination);
 
 int sys_dynlib_load_prx(const char *name, int *idDestination);
+
+int sys_dynlib_unload_prx(int *idDestination);
 
 #ifdef __cplusplus
 }
