@@ -41,29 +41,30 @@ STUBOBJS     := $(patsubst $(PROJDIR)/%.c,$(STUBDIR)/%.o.stub,$(CFILES)) \
                 $(patsubst $(PROJDIR)/%.cpp,$(STUBDIR)/%.o.stub,$(CPPFILES)) \
                 $(patsubst $(COMMONDIR)/%.cpp,$(STUBDIR)/%.o.stub,$(COMMONFILES))
 
-PRX_OBJS := $(patsubst $(PROJDIR)/%.c,$(INTDIR)/prx_%.o,$(filter-out $(PROJDIR)/crtprx.c,$(CFILES))) \
-            $(patsubst $(PROJDIR)/%.cpp,$(INTDIR)/prx_%.o,$(CPPFILES)) \
-            $(patsubst $(COMMONDIR)/%.cpp,$(INTDIR)/prx_%.o,$(COMMONFILES))
+PRX_OBJS     := $(patsubst $(PROJDIR)/%.c,$(INTDIR)/prx_%.o,$(filter-out $(PROJDIR)/crtprx.c,$(CFILES))) \
+                $(patsubst $(PROJDIR)/%.cpp,$(INTDIR)/prx_%.o,$(CPPFILES)) \
+                $(patsubst $(COMMONDIR)/%.cpp,$(INTDIR)/prx_%.o,$(COMMONFILES))
 
 CFLAGS       := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c $(EXTRAFLAGS) \
-                -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(INCLUDEDIR) -I$(COMMONDIR)
-CXXFLAGS     := $(CFLAGS) -isystem $(TOOLCHAIN)/$(INCLUDEDIR)/c++/v1
+                -nostdinc -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include -I$(INCLUDEDIR) -I$(COMMONDIR)
+
+CXXFLAGS     := $(CFLAGS) -nostdinc++ -isystem $(TOOLCHAIN)/$(INCLUDEDIR)/c++/v1
 LDFLAGS      := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x -e _init --eh-frame-hdr -L$(TOOLCHAIN)/lib $(LIBS)
 
 UNAME_S      := $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
-	CC      := clang
-	CCX     := clang++
-	LD      := ld.lld
-	CDIR    := linux
-	AR      := llvm-ar
+	CC       := clang
+	CCX      := clang++
+	LD       := ld.lld
+	CDIR     := linux
+	AR       := llvm-ar
 endif
 ifeq ($(UNAME_S),Darwin)
-	CC      := /usr/local/opt/llvm/bin/clang
-	CCX     := /usr/local/opt/llvm/bin/clang++
-	LD      := /usr/local/opt/llvm/bin/ld.lld
-	CDIR    := macos
-	AR      := /usr/local/opt/llvm/bin/llvm-ar
+	CC       := /usr/local/opt/llvm/bin/clang
+	CCX      := /usr/local/opt/llvm/bin/clang++
+	LD       := /usr/local/opt/llvm/bin/ld.lld
+	CDIR     := macos
+	AR       := /usr/local/opt/llvm/bin/llvm-ar
 endif
 
 .PHONY: dirs
